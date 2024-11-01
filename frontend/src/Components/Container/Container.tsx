@@ -3,7 +3,9 @@ import styles from './Container.module.css'
 function Container() {
   return (
     <div className={styles.container}>
-        <Box />
+        {[...Array(100)].map((item,idx)=>{
+        return <Box />
+      })}
     </div>
   )
 }
