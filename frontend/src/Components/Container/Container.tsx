@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Box from "../Box/Box";
 import styles from "./Container.module.css";
 import { colors } from "../../utils/constants";
+import { ColorStack } from "../../utils/ColorStack";
 
 interface RandomColors {
   [key: number]: string;
@@ -14,8 +15,8 @@ interface BurstCandy {
 function Container() {
   const [startIdx, setStartIdx] = useState<number>();
   const [indexColor, setIndexColor] = useState<RandomColors>({});
+  const [stack,setStack] = useState<ColorStack<string>>(new ColorStack<string>());
   const handleDrop = (dropIdx: number) => {
-    console.log("dropping to ", dropIdx, " from ", startIdx);
     if (
       startIdx === dropIdx + 10 ||
       startIdx === dropIdx - 10 ||
@@ -78,6 +79,29 @@ function Container() {
         }
       }
       if (toBeBursted) {
+        const updatedColors:RandomColors = {};
+        for(let columnNumber=0;columnNumber<=9;columnNumber++){
+          setStack(new ColorStack<string>());
+          let numberOfColorToBeGenerated = 0;
+          for(let cellNumber = columnNumber;cellNumber<100;cellNumber+=10){
+            if(candyBurst[cellNumber]===0){
+              stack.push(indexColor[cellNumber]);
+            }else{
+              numberOfColorToBeGenerated++
+            }
+          }
+          while(numberOfColorToBeGenerated>=0){
+            stack.push(indexColor[Math.floor(Math.random()*colors.length)]);
+            numberOfColorToBeGenerated--;
+          }
+          for(let cellNumber = columnNumber;cellNumber<100;cellNumber+=10){
+            const valueToPush = stack.pop();
+            if(valueToPush)
+            updatedColors[cellNumber]=valueToPush;
+          }
+        }
+        console.log("updated color ",updatedColors)
+        // setIndexColor(updatedColors)
         setIndexColor((prevColors) => {
           const updatedColors = { ...prevColors };
           for (const key in candyBurst) {
@@ -94,13 +118,15 @@ function Container() {
   useEffect(() => {
     const numbers: RandomColors = {};
     for (let i = 0; i < 100; i++) {
-      numbers[i] = colors[Math.floor(Math.random() * 5)]; // Generates a number between 0 and 4
+      numbers[i] = colors[Math.floor(Math.random() * 5)];
     }
     setIndexColor(numbers);
   }, []);
+  useEffect(()=>{
+    crushCandy(indexColor)
+  },[indexColor])
   const handleDrag = (idx: number) => {
     setStartIdx(idx);
-    console.log("drag start", idx);
   };
   return (
     <div className={styles.container}>
